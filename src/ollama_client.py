@@ -5,6 +5,7 @@ Handles communication with Ollama Gen AI
 import subprocess
 import yaml
 import logging
+import os
 
 with open("config/settings.yaml", "r") as f:
     CONFIG = yaml.safe_load(f)
@@ -13,6 +14,12 @@ logger = logging.getLogger(__name__)
 
 def generate_ai_response(prompt: str) -> str:
     try:
+        # -------- Improvement: Allow Failure Simulation For Testing --------
+        if os.getenv("SIMULATE_FAIL") == "1":
+            logger.error("Simulated Ollama Failure Triggered")
+            raise RuntimeError("Simulated Ollama Engine Failure")
+
+        # -------- Actual OLLAMA Execution --------
         cmd = [
             "ollama", "run",
             CONFIG["model"],

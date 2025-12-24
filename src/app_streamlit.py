@@ -1,7 +1,6 @@
 import streamlit as st
-from security import validate_requirements
-from generator import generate_test_cases
-
+from src.generator import generate_test_cases
+from src.security import validate_requirements
 st.set_page_config(page_title="AI Test Case Generator", layout="wide")
 
 # ======= CUSTOM CSS UI =========

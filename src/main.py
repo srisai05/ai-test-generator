@@ -4,8 +4,9 @@ CLI Entry Point
 
 import logging
 from logging.handlers import RotatingFileHandler
-from generator import generate_test_cases
-from security import validate_requirements
+from src.generator import generate_test_cases
+from src.security import validate_requirements
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

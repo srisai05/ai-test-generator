@@ -2,7 +2,7 @@
 Core test case generation logic
 """
 
-from ollama_client import generate_ai_response
+from src.ollama_client import generate_ai_response
 import logging
 
 logger = logging.getLogger(__name__)
