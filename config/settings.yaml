@@ -1,0 +1,4 @@
+model: "llama3"
+temperature: 0.2
+max_tokens: 2048
+log_level: "INFO"
