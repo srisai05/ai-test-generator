@@ -1,9 +1,33 @@
 import streamlit as st
+import logging
+import sys, os
+sys.path.append(os.path.abspath("."))
+from logging.handlers import RotatingFileHandler
 from src.generator import generate_test_cases
 from src.security import validate_requirements
-st.set_page_config(page_title="AI Test Case Generator", layout="wide")
 
-# ======= CUSTOM CSS UI =========
+# ================= LOGGING SETUP =================
+LOG_PATH = "logs/app.log"
+os.makedirs("logs", exist_ok=True)
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Avoid duplicate handlers
+
+if not logger.handlers:
+    handler = RotatingFileHandler(LOG_PATH, maxBytes=500000, backupCount=3)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+logger.info("Streamlit UI Loaded")
+
+
+# ================= STREAMLIT PAGE CONFIG =================
+st.set_page_config(page_title="AI Test Cases Generator", layout="wide")
+
+# ================= CUSTOM CSS =================
 st.markdown("""
 <style>
 .header-box {
@@ -25,22 +49,18 @@ st.markdown("""
     text-align:center;
     color:#666;
 }
-.button-style {
-    background:#1b6cf2;
-    color:white;
-    padding:10px 20px;
-    border-radius:10px;
-    font-weight:600;
-}
 </style>
 """, unsafe_allow_html=True)
 
-# ======= HEADER =========
-st.markdown('<div class="header-box">🧪 AI TEST CASE GENERATOR – Using Local OLLAMA</div>', unsafe_allow_html=True)
 
-st.write("")
+# ================= HEADER =================
+st.markdown(
+    '<div class="header-box">🧪 AI QA Test Suite Generator</div>',
+    unsafe_allow_html=True
+)
+
 st.write("""
-This tool converts **plain requirements** into:
+This tool converts **plain requirements** into professionally structured:
 - Functional Test Cases  
 - Boundary Test Cases  
 - Negative Test Cases  
@@ -48,42 +68,43 @@ This tool converts **plain requirements** into:
 - Acceptance Criteria
 """)
 
-# ======= API KEY & SECURITY NOTE =========
-st.markdown("""
-<div class="info-box">
-<b>🔐 Security & API Key Information</b><br>
-✔ This project does NOT require API Key<br>
-✔ Uses Secure Local OLLAMA Gen-AI Engine<br>
-✔ No cloud dependency – Completely Offline<br>
-✔ Data Never Leaves System<br>
-</div>
-""", unsafe_allow_html=True)
 
-# ======= MAIN INPUT =========
+
+# ================= MAIN INPUT =================
 st.subheader("✍️ Enter Requirement")
-requirement = st.text_area("Paste Requirement Here", height=200)
+requirement = st.text_area("Paste Requirement Here", height=200, placeholder="Example: User should be able to login using username and password...")
 
-if st.button("Generate Test Cases"):
+generate = st.button("Generate Test Cases")
+
+if generate:
     try:
-        validate_requirements(requirement)
-        result = generate_test_cases(requirement)
-        
-        st.success("Test Cases Generated Successfully")
-        st.subheader("📌 Generated Test Cases")
-        st.code(result, language="markdown")
+        logger.info("User clicked Generate Test Cases")
+
+        if not requirement.strip():
+            st.error("Requirement cannot be empty!")
+            logger.warning("Empty requirement submitted")
+        else:
+            validate_requirements(requirement)
+            logger.info("Requirement validation successful")
+
+            with st.spinner("Generating AI Test Cases... Please wait..."):
+                result = generate_test_cases(requirement)
+
+            st.success("Test Cases Generated Successfully")
+            st.subheader("📌 Generated Test Cases")
+            st.code(result, language="markdown")
+
+            # Download Button
+            st.download_button(
+                label="⬇️ Download Test Cases",
+                data=result,
+                file_name="generated_test_cases.txt",
+                mime="text/plain"
+            )
+
+            logger.info("Test Cases delivered successfully to UI")
 
     except Exception as e:
-        st.error(str(e))
-
-# ======= CONFIG & LOG INFO =========
-st.markdown("""
-<div class="info-box">
-<b>⚙️ Configuration & Engineering Practices Followed</b><br>
-✔ Configuration Managed via settings.yaml<br>
-✔ Centralized Logging Enabled<br>
-✔ Secure Input Validation Implemented<br>
-✔ Structured Modular Code<br>
-✔ Professional Engineering Standards Followed
-</div>
-""", unsafe_allow_html=True)
+        logger.exception("Streamlit Execution Failed")
+        st.error(f"❌ Error: {str(e)}")
 
