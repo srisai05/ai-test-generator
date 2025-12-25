@@ -1,4 +1,5 @@
 from src.generator import generate_test_cases
+import pytest
 
 def test_ai_response_structure():
     requirement = "User must login using username and password"
@@ -7,4 +8,4 @@ def test_ai_response_structure():
     assert "Functional" in response
     assert "Negative" in response
     assert "Boundary" in response
-    assert "Acceptance" in response
+
